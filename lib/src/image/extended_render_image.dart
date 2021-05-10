@@ -18,6 +18,7 @@ class ExtendedRenderImage extends RenderBox {
     double? width,
     double? height,
     double scale = 1.0,
+    int? quarterTurns,
     Color? color,
     BlendMode? colorBlendMode,
     BoxFit? fit,
@@ -38,6 +39,7 @@ class ExtendedRenderImage extends RenderBox {
         _width = width,
         _height = height,
         _scale = scale,
+		    _quarterTurns = quarterTurns ?? 0,
         _color = color,
         _colorBlendMode = colorBlendMode,
         _fit = fit,
@@ -190,6 +192,17 @@ class ExtendedRenderImage extends RenderBox {
       return;
     }
     _scale = value;
+    markNeedsLayout();
+  }
+
+  /// Specifies the number of clockwise quarter-turns to make to the image. 
+  int get quarterTurns => _quarterTurns;
+  int _quarterTurns;
+  set quarterTurns(int value) {
+	  if (value == _quarterTurns) {
+		  return;
+	  }
+    _quarterTurns = value;
     markNeedsLayout();
   }
 
@@ -392,7 +405,8 @@ class ExtendedRenderImage extends RenderBox {
     }
 
     return constraints.constrainSizeAndAttemptToPreserveAspectRatio(Size(
-        _image!.width.toDouble() / _scale, _image!.height.toDouble() / _scale));
+        ((quarterTurns % 2 == 0) ? _image!.width.toDouble() : _image!.height.toDouble()) / _scale,
+        ((quarterTurns % 2 == 0) ? _image!.height.toDouble() : _image!.width.toDouble()) / _scale));
   }
 
   @override
@@ -442,6 +456,19 @@ class ExtendedRenderImage extends RenderBox {
     size = _sizeForConstraints(constraints);
   }
 
+  Offset _rotateOffset(Offset offset, int quarterTurns) {
+    if (quarterTurns % 4 == 1) {
+      return Offset(-offset.dy, -offset.dx);
+    }
+    else if (quarterTurns % 4 == 2) {
+      return Offset(-offset.dx, -offset.dy);
+    }
+    else if (quarterTurns % 4 == 3) {
+      return Offset(-offset.dy, -offset.dx);
+    }
+    return offset;
+  }
+
   @override
   void paint(PaintingContext context, Offset offset) {
     if (_image == null) {
@@ -460,6 +487,7 @@ class ExtendedRenderImage extends RenderBox {
         image: _image!,
         debugImageLabel: debugImageLabel,
         scale: _scale,
+        quarterTurns: quarterTurns,
         colorFilter: _colorFilter,
         fit: _fit,
         alignment: _resolvedAlignment!,
@@ -509,6 +537,7 @@ void paintExtendedImage({
   required ui.Image image,
   String? debugImageLabel,
   double scale = 1.0,
+  required int quarterTurns,
   ColorFilter? colorFilter,
   BoxFit? fit,
   Alignment alignment = Alignment.center,
@@ -531,7 +560,12 @@ void paintExtendedImage({
   }
 
   Size outputSize = rect.size;
+  print('outputSize $outputSize');
   Size inputSize = Size(image.width.toDouble(), image.height.toDouble());
+  if (quarterTurns % 2 == 1) {
+    inputSize = Size(inputSize.height, inputSize.width);
+  }
+  print('inputSize $inputSize');
 
   final Offset topLeft = rect.topLeft;
 
@@ -555,7 +589,9 @@ void paintExtendedImage({
   final FittedSizes fittedSizes =
       applyBoxFit(fit, inputSize / scale, outputSize);
   final Size sourceSize = fittedSizes.source * scale;
+  print('sourceSize $sourceSize');
   Size destinationSize = fittedSizes.destination;
+  print('destinationSize $destinationSize');
   if (centerSlice != null) {
     outputSize += sliceBorder;
     destinationSize += sliceBorder;
@@ -592,6 +628,13 @@ void paintExtendedImage({
   if (gestureDetails != null) {
     destinationRect =
         gestureDetails.calculateFinalDestinationRect(rect, destinationRect);
+    // Gesture offset will not be aligned with rotation, need to compensate
+    if (quarterTurns % 4 == 1 || quarterTurns % 4 == 2) {
+      destinationRect = Rect.fromLTRB(rect.center.dx - (destinationRect.right - rect.center.dx), destinationRect.top, rect.center.dx - (destinationRect.left - rect.center.dx), destinationRect.bottom);
+    }
+    if (quarterTurns % 4 == 2 || quarterTurns % 4 == 3) {
+      destinationRect = Rect.fromLTRB(destinationRect.left, rect.center.dy - (destinationRect.bottom - rect.center.dy), destinationRect.right, rect.center.dy - (destinationRect.top - rect.center.dy));
+    }
 
     ///outside and need clip
     needClip = outRect(rect, destinationRect);
@@ -665,6 +708,24 @@ void paintExtendedImage({
       destinationRect = editAction.paintRect(destinationRect);
     }
   }
+  else {
+    final double dx = (rect.width / 2) + rect.left;
+    final double dy = (rect.height / 2) + rect.top;
+    canvas.translate(dx, dy);
+    canvas.rotate(quarterTurns * (pi / 2));
+    if (quarterTurns % 4 == 0) {
+      canvas.translate(-dx, -dy);
+    }
+    if (quarterTurns % 4 == 1) {
+      canvas.translate(-dy, -dx);
+    }
+    else if (quarterTurns % 4 == 2) {
+      canvas.translate(-dx, -dy);
+    }
+    else if (quarterTurns % 4 == 3) {
+      canvas.translate(-dy, -dx);
+    }
+  }
 
   if (beforePaintImage != null) {
     final bool handle = beforePaintImage(canvas, destinationRect, image, paint);
@@ -687,12 +748,18 @@ void paintExtendedImage({
     canvas.translate(dx, 0.0);
   }
 
+  if (quarterTurns % 2 == 1) {
+    destinationRect = Rect.fromLTRB(destinationRect.top, destinationRect.left, destinationRect.bottom, destinationRect.right);
+  }
   if (centerSlice == null) {
-    final Rect sourceRect = customSourceRect ??
+    Rect sourceRect = customSourceRect ??
         alignment.inscribe(sourceSize, Offset.zero & inputSize);
+    if (quarterTurns % 2 == 1) {
+      sourceRect = Rect.fromLTWH(sourceRect.top, sourceRect.left, sourceRect.height, sourceRect.width);
+    }
     for (final Rect tileRect
         in _generateImageTileRects(rect, destinationRect, repeat)) {
-      canvas.drawImageRect(image, sourceRect, tileRect, paint);
+      canvas.drawImageRect(image, sourceRect, Rect.fromLTWH(tileRect.left, tileRect.top, tileRect.width, tileRect.height), paint);
     }
   } else {
     for (final Rect tileRect

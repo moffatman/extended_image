@@ -23,6 +23,7 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
     this.width,
     this.height,
     this.scale = 1.0,
+	this.quarterTurns,
     this.color,
     this.colorBlendMode,
     this.fit,
@@ -76,6 +77,9 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
   ///
   /// Used when determining the best display size for the image.
   final double scale;
+
+  /// Specifies the amount of clockwise quarter-turns to make on the image
+  final int? quarterTurns;
 
   /// If non-null, this color is blended with each image pixel using [colorBlendMode].
   final Color? color;
@@ -186,6 +190,7 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
       width: width,
       height: height,
       scale: scale,
+	  quarterTurns: quarterTurns,
       color: color,
       colorBlendMode: colorBlendMode,
       fit: fit,

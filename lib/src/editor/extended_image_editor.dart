@@ -80,6 +80,7 @@ class ExtendedImageEditorState extends State<ExtendedImageEditor> {
 
   @override
   Widget build(BuildContext context) {
+	assert(widget.extendedImageState.imageWidget.quarterTurns == null, 'quarterTurns not supported for editor image');
     assert(_editActionDetails != null && _editorConfig != null);
     final ExtendedImage extendedImage = widget.extendedImageState.imageWidget;
     final Widget image = ExtendedRawImage(

@@ -37,6 +37,7 @@ class ExtendedImage extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     this.loadStateChanged,
     this.border,
+	this.quarterTurns,
     this.shape,
     this.borderRadius,
     this.clipBehavior = Clip.antiAlias,
@@ -81,6 +82,7 @@ class ExtendedImage extends StatefulWidget {
     this.gaplessPlayback = false,
     this.filterQuality = FilterQuality.low,
     this.loadStateChanged,
+	this.quarterTurns,
     this.shape,
     this.border,
     this.borderRadius,
@@ -186,6 +188,7 @@ class ExtendedImage extends StatefulWidget {
     this.gaplessPlayback = false,
     this.filterQuality = FilterQuality.low,
     this.loadStateChanged,
+	this.quarterTurns,
     this.shape,
     this.border,
     this.borderRadius,
@@ -380,6 +383,7 @@ class ExtendedImage extends StatefulWidget {
     String? package,
     this.filterQuality = FilterQuality.low,
     this.loadStateChanged,
+	this.quarterTurns,
     this.shape,
     this.border,
     this.borderRadius,
@@ -472,6 +476,7 @@ class ExtendedImage extends StatefulWidget {
     this.gaplessPlayback = false,
     this.filterQuality = FilterQuality.low,
     this.loadStateChanged,
+	this.quarterTurns,
     this.shape,
     this.border,
     this.borderRadius,
@@ -577,6 +582,9 @@ class ExtendedImage extends StatefulWidget {
 
   /// {@macro flutter.clipper.clipBehavior}
   final Clip clipBehavior;
+
+  /// Number of turns to rotate the image clockwise
+  final int? quarterTurns;
 
   /// The shape to fill the background [color], [gradient], and [image] into and
   /// to cast as the [boxShadow].
@@ -1159,6 +1167,7 @@ class _ExtendedImageState extends State<ExtendedImage>
       filterQuality: widget.filterQuality,
       beforePaintImage: widget.beforePaintImage,
       afterPaintImage: widget.afterPaintImage,
+      quarterTurns: widget.quarterTurns,
     );
   }
 
