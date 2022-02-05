@@ -368,7 +368,7 @@ class _PicSwiperState extends State<PicSwiper> with TickerProviderStateMixin {
   Rect? imageDRect;
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
+    final Size size = MediaQuery.of(context, MediaQueryAspect.size).size;
     imageDRect = Offset.zero & size;
     Widget result = Material(
 

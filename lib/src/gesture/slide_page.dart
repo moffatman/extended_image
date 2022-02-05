@@ -222,7 +222,7 @@ class ExtendedImageSlidePageState extends State<ExtendedImageSlidePage>
 
   @override
   Widget build(BuildContext context) {
-    _pageSize = MediaQuery.of(context).size;
+    _pageSize = MediaQuery.of(context, MediaQueryAspect.size).size;
     final Color pageColor =
         widget.slidePageBackgroundHandler?.call(offset, pageSize) ??
             defaultSlidePageBackgroundHandler(
