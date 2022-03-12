@@ -202,6 +202,7 @@ class ExtendedImageGesturePageViewState
         oldWidget.controller.shouldIgnorePointerWhenScrolling !=
             widget.controller.shouldIgnorePointerWhenScrolling) {
       bool canMove = true;
+      final DeviceGestureSettings? gestureSettings = context.findAncestorWidgetOfExactType<MediaQuery>()?.data.gestureSettings;
 
       ///user's physics
       if (widget.physics.parent != null) {
@@ -228,7 +229,8 @@ class ExtendedImageGesturePageViewState
                     ..onCancel = onDragCancel
                     ..minFlingDistance = widget.physics.minFlingDistance
                     ..minFlingVelocity = widget.physics.minFlingVelocity
-                    ..maxFlingVelocity = widget.physics.maxFlingVelocity;
+                    ..maxFlingVelocity = widget.physics.maxFlingVelocity
+                    ..gestureSettings = gestureSettings;
                 },
               ),
             };
@@ -251,7 +253,8 @@ class ExtendedImageGesturePageViewState
                     ..onCancel = onDragCancel
                     ..minFlingDistance = widget.physics.minFlingDistance
                     ..minFlingVelocity = widget.physics.minFlingVelocity
-                    ..maxFlingVelocity = widget.physics.maxFlingVelocity;
+                    ..maxFlingVelocity = widget.physics.maxFlingVelocity
+                    ..gestureSettings = gestureSettings;
                 },
               ),
             };
@@ -269,7 +272,8 @@ class ExtendedImageGesturePageViewState
                 ..onStart = onScaleStart
                 ..onUpdate = onScaleUpdate
                 ..onEnd = onScaleEnd
-                ..dragStartBehavior = DragStartBehavior.start;
+                ..dragStartBehavior = DragStartBehavior.start
+                ..gestureSettings = gestureSettings;
             },
           );
         }
