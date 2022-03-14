@@ -114,7 +114,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
       onScaleStart: handleScaleStart,
       onScaleUpdate: handleScaleUpdate,
       onScaleEnd: handleScaleEnd,
-      onDoubleTap: _handleDoubleTap,
+      onDoubleTap: (widget.extendedImageState.imageWidget.onDoubleTap != null) ? () => widget.extendedImageState.imageWidget.onDoubleTap!(this) : null,
       child: image,
       behavior: _gestureConfig?.hitTestBehavior,
     );
@@ -199,22 +199,6 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         _gestureDetails!.slidePageOffset = extendedImageSlidePageState?.offset;
       });
     }
-  }
-
-  void _handleDoubleTap() {
-    if (widget.extendedImageState.imageWidget.onDoubleTap != null) {
-      widget.extendedImageState.imageWidget.onDoubleTap!(this);
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    gestureDetails = GestureDetails(
-      offset: Offset.zero,
-      totalScale: _gestureConfig!.initialScale,
-    );
   }
 
   void _handlePointerDown(PointerDownEvent pointerDownEvent) {
