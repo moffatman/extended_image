@@ -51,9 +51,9 @@ class ExtendedHorizontalDragGestureRecognizer
   }
 
   @override
-  bool _hasSufficientGlobalDistanceToAccept(
+  double _calculateAcceptFactor(
       PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
-    return _globalDistanceMoved.abs() >
+    return _globalDistanceMoved.abs() /
         computeHitSlop(pointerDeviceKind, gestureSettings);
   }
 
@@ -108,9 +108,9 @@ class ExtendedVerticalDragGestureRecognizer
   }
 
   @override
-  bool _hasSufficientGlobalDistanceToAccept(
+  double _calculateAcceptFactor(
       PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
-    return _globalDistanceMoved.abs() >
+    return _globalDistanceMoved.abs() /
         computeHitSlop(pointerDeviceKind, gestureSettings);
   }
 
@@ -323,8 +323,7 @@ abstract class ExtendedDragGestureRecognizer
 
   Offset _getDeltaForDetails(Offset delta);
   double? _getPrimaryValueFromOffset(Offset value);
-  bool _hasSufficientGlobalDistanceToAccept(
-      PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop);
+  double _calculateAcceptFactor(PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop);
 
   final Map<int, VelocityTracker> _velocityTrackers = <int, VelocityTracker>{};
 
@@ -441,9 +440,7 @@ abstract class ExtendedDragGestureRecognizer
               untransformedEndPosition: event.localPosition,
             ).distance *
             (_getPrimaryValueFromOffset(movedLocally) ?? 1).sign;
-        if (_hasSufficientGlobalDistanceToAccept(
-                event.kind, gestureSettings?.touchSlop) &&
-            _shouldAccpet()) resolve(GestureDisposition.accepted);
+        if (_shouldAccpet()) resolve(GestureDisposition.accepted, bid: _calculateAcceptFactor(event.kind, gestureSettings?.touchSlop));
       }
     }
     if (event is PointerPanZoomUpdateEvent) {
@@ -467,9 +464,7 @@ abstract class ExtendedDragGestureRecognizer
           untransformedDelta: movedLocally,
           untransformedEndPosition: event.localPosition + event.pan
         ).distance * (_getPrimaryValueFromOffset(movedLocally) ?? 1).sign;
-        if (_hasSufficientGlobalDistanceToAccept(
-                event.kind, gestureSettings?.touchSlop) &&
-            _shouldAccpet()) resolve(GestureDisposition.accepted);
+        if (_shouldAccpet()) resolve(GestureDisposition.accepted, bid: _calculateAcceptFactor(event.kind, gestureSettings?.touchSlop));
       }
     }
     if (event is PointerUpEvent || event is PointerCancelEvent || event is PointerPanZoomEndEvent) {
@@ -505,6 +500,7 @@ abstract class ExtendedDragGestureRecognizer
 
   @override
   void acceptGesture(int pointer) {
+    super.acceptGesture(pointer);
     assert(!_acceptedActivePointers.contains(pointer));
     _acceptedActivePointers.add(pointer);
     if (_state != _DragState.accepted) {
@@ -558,6 +554,7 @@ abstract class ExtendedDragGestureRecognizer
 
   @override
   void rejectGesture(int pointer) {
+    super.rejectGesture(pointer);
     _giveUpPointer(pointer);
   }
 
