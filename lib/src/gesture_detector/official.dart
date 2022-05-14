@@ -305,8 +305,7 @@ abstract class _DragGestureRecognizer extends OneSequenceGestureRecognizer {
   ///
   /// The [PanGestureRecognizer] returns null.
   _DragDirection? _getPrimaryDragAxis() => null;
-  bool _hasSufficientGlobalDistanceToAccept(
-      PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop);
+  double _calculateAcceptFactor(PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop);
   bool _hasDragThresholdBeenMet = false;
 
   final Map<int, VelocityTracker> _velocityTrackers = <int, VelocityTracker>{};
@@ -626,8 +625,9 @@ abstract class _DragGestureRecognizer extends OneSequenceGestureRecognizer {
                     untransformedEndPosition: localPosition)
                 .distance *
             (_getPrimaryValueFromOffset(movedLocally) ?? 1).sign;
-        if (_hasSufficientGlobalDistanceToAccept(
-            event.kind, gestureSettings?.touchSlop)) {
+        resolve(GestureDisposition.accepted, bid: _calculateAcceptFactor(event.kind, gestureSettings?.touchSlop));
+        if (_calculateAcceptFactor(
+            event.kind, gestureSettings?.touchSlop) >= 1) {
           _hasDragThresholdBeenMet = true;
           if (_acceptedActivePointers.contains(event.pointer)) {
             _checkDrag(event.pointer);
@@ -884,10 +884,8 @@ class _VerticalDragGestureRecognizer extends _DragGestureRecognizer {
   }
 
   @override
-  bool _hasSufficientGlobalDistanceToAccept(
-      PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
-    return _globalDistanceMoved.abs() >
-        computeHitSlop(pointerDeviceKind, gestureSettings);
+  double _calculateAcceptFactor(PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
+    return _globalDistanceMoved.abs() / computeHitSlop(pointerDeviceKind, gestureSettings);
   }
 
   @override
@@ -948,10 +946,8 @@ class _HorizontalDragGestureRecognizer extends _DragGestureRecognizer {
   }
 
   @override
-  bool _hasSufficientGlobalDistanceToAccept(
-      PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
-    return _globalDistanceMoved.abs() >
-        computeHitSlop(pointerDeviceKind, gestureSettings);
+  double _calculateAcceptFactor(PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
+    return _globalDistanceMoved.abs() / computeHitSlop(pointerDeviceKind, gestureSettings);
   }
 
   @override
