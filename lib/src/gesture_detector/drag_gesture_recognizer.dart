@@ -108,15 +108,15 @@ mixin DragGestureRecognizerMixin on _DragGestureRecognizer {
                     untransformedEndPosition: localPosition)
                 .distance *
             (_getPrimaryValueFromOffset(movedLocally) ?? 1).sign;
-        if (_hasSufficientGlobalDistanceToAccept(
-                event.kind, gestureSettings?.touchSlop) &&
-            // zmtzawqlp
-            _shouldAccpet()) {
-          _hasDragThresholdBeenMet = true;
-          if (_acceptedActivePointers.contains(event.pointer)) {
-            _checkDrag(event.pointer);
-          } else {
-            resolve(GestureDisposition.accepted);
+        if (_shouldAccpet()) {
+          resolve(GestureDisposition.accepted, bid: _calculateAcceptFactor(event.kind, gestureSettings?.touchSlop));
+          if (_calculateAcceptFactor(event.kind, gestureSettings?.touchSlop) >= 1) {
+            _hasDragThresholdBeenMet = true;
+            if (_acceptedActivePointers.contains(event.pointer)) {
+              _checkDrag(event.pointer);
+            } else {
+              resolve(GestureDisposition.accepted);
+            }
           }
         }
       }
