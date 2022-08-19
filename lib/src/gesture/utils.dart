@@ -466,7 +466,7 @@ enum ActionType {
 
 const double minMagnitude = 400.0;
 const double velocity = minMagnitude / 1000.0;
-const double minGesturePageDelta = 5.0;
+const double minGesturePageDelta = 0.0;
 
 class GestureAnimation {
   GestureAnimation(TickerProvider vsync,

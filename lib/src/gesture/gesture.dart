@@ -366,7 +366,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
 
     if (extendedImageSlidePageState != null &&
         extendedImageSlidePageState!.isSliding) {
-      return;
+      //return;
     }
 
     // totalScale > 1 and page view is starting to move
