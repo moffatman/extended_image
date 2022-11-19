@@ -117,7 +117,8 @@ void paintExtendedImage(
     GestureDetails? gestureDetails,
     EditActionDetails? editActionDetails,
     bool isAntiAlias = false,
-    EdgeInsets layoutInsets = EdgeInsets.zero}) {
+    EdgeInsets layoutInsets = EdgeInsets.zero,
+    bool rotate90DegreesClockwise = false}) {
   assert(
     image.debugGetOpenHandleStackTraces()?.isNotEmpty ?? true,
     'Cannot paint an image that is disposed.\n'
@@ -154,7 +155,7 @@ void paintExtendedImage(
   fit ??= centerSlice == null ? BoxFit.scaleDown : BoxFit.fill;
   assert(centerSlice == null || (fit != BoxFit.none && fit != BoxFit.cover));
   final FittedSizes fittedSizes =
-      applyBoxFit(fit, inputSize / scale, outputSize);
+      applyBoxFit(fit, inputSize / scale, rotate90DegreesClockwise ? outputSize.flipped : outputSize);
   final Size sourceSize = fittedSizes.source * scale;
   Size destinationSize = fittedSizes.destination;
   if (centerSlice != null) {
@@ -190,8 +191,22 @@ void paintExtendedImage(
   bool needClip = false;
 
   if (gestureDetails != null) {
+    if (rotate90DegreesClockwise) {
+      destinationRect = Rect.fromCenter(
+        center: destinationRect.center,
+        width: destinationRect.height,
+        height: destinationRect.width
+      );
+    }
     destinationRect =
         gestureDetails.calculateFinalDestinationRect(rect, destinationRect);
+    if (rotate90DegreesClockwise) {
+      destinationRect = Rect.fromCenter(
+        center: destinationRect.center,
+        width: destinationRect.height,
+        height: destinationRect.width
+      );
+    }
 
     ///outside and need clip
     needClip = rect.beyond(destinationRect);
@@ -390,6 +405,11 @@ void paintExtendedImage(
     canvas.scale(-1.0, 1.0);
     canvas.translate(dx, 0.0);
   }
+  if (rotate90DegreesClockwise) {
+    canvas.translate(destinationRect.center.dx, destinationRect.center.dy);
+    canvas.rotate(math.pi / 2);
+    canvas.translate(-destinationRect.center.dx, -destinationRect.center.dy);
+  }
 
   if (centerSlice == null) {
     final Rect sourceRect = customSourceRect ??
@@ -412,6 +432,12 @@ void paintExtendedImage(
         canvas.drawImageNine(image, _scaleRect(centerSlice, scale),
             _scaleRect(tileRect, scale), paint);
     }
+  }
+
+  if (rotate90DegreesClockwise) {
+    canvas.translate(destinationRect.center.dx, destinationRect.center.dy);
+    canvas.rotate(-math.pi / 2);
+    canvas.translate(-destinationRect.center.dx, -destinationRect.center.dy);
   }
 
   if (needSave) {

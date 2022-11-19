@@ -92,6 +92,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
       afterPaintImage: widget.extendedImageState.imageWidget.afterPaintImage,
       gestureDetails: _gestureDetails,
       layoutInsets: widget.extendedImageState.imageWidget.layoutInsets,
+      rotate90DegreesClockwise: widget.extendedImageState.imageWidget.rotate90DegreesClockwise,
     );
 
     if (extendedImageSlidePageState != null) {

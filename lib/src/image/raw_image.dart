@@ -42,6 +42,7 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
     this.isAntiAlias = false,
     this.debugImageLabel,
     this.layoutInsets = EdgeInsets.zero,
+    this.rotate90DegreesClockwise = false,
   }) : super(key: key);
 
   /// details about edit
@@ -192,6 +193,8 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
   /// Anti-aliasing alleviates the sawtooth artifact when the image is rotated.
   final bool isAntiAlias;
 
+  final bool rotate90DegreesClockwise;
+
   @override
   ExtendedRenderImage createRenderObject(BuildContext context) {
     assert((!matchTextDirection && alignment is Alignment) ||
@@ -227,6 +230,7 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
       gestureDetails: gestureDetails,
       editActionDetails: editActionDetails,
       layoutInsets: layoutInsets,
+      rotate90DegreesClockwise: rotate90DegreesClockwise,
     );
   }
 
@@ -262,7 +266,10 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
       ..beforePaintImage = beforePaintImage
       ..sourceRect = sourceRect
       ..gestureDetails = gestureDetails
-      ..editActionDetails = editActionDetails;
+      ..editActionDetails = editActionDetails
+      ..isAntiAlias = isAntiAlias
+      ..layoutInsets = layoutInsets
+      ..rotate90DegreesClockwise = rotate90DegreesClockwise;
   }
 
   @override
@@ -297,5 +304,7 @@ class ExtendedRawImage extends LeafRenderObjectWidget {
     properties.add(EnumProperty<FilterQuality>('filterQuality', filterQuality));
     properties
         .add(DiagnosticsProperty<EdgeInsets>('layoutInsets', layoutInsets));
+    properties
+        .add(DiagnosticsProperty<bool>('rotate90DegreesClockwise', rotate90DegreesClockwise));
   }
 }

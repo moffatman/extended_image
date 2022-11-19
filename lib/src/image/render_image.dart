@@ -38,6 +38,7 @@ class ExtendedRenderImage extends RenderBox {
     GestureDetails? gestureDetails,
     EditActionDetails? editActionDetails,
     EdgeInsets layoutInsets = EdgeInsets.zero,
+    bool rotate90DegreesClockwise = false,
   })  : _image = image,
         _width = width,
         _height = height,
@@ -59,7 +60,8 @@ class ExtendedRenderImage extends RenderBox {
         _afterPaintImage = afterPaintImage,
         _gestureDetails = gestureDetails,
         _editActionDetails = editActionDetails,
-        _layoutInsets = layoutInsets {
+        _layoutInsets = layoutInsets,
+        _rotate90DegreesClockwise = rotate90DegreesClockwise {
     _updateColorFilter();
   }
 
@@ -70,6 +72,16 @@ class ExtendedRenderImage extends RenderBox {
       return;
     }
     _layoutInsets = value;
+    markNeedsPaint();
+  }
+
+  bool _rotate90DegreesClockwise;
+  bool get rotate90DegreesClockwise => _rotate90DegreesClockwise;
+  set rotate90DegreesClockwise(bool value) {
+    if (value == _rotate90DegreesClockwise) {
+      return;
+    }
+    _rotate90DegreesClockwise = value;
     markNeedsPaint();
   }
 
@@ -525,6 +537,7 @@ class ExtendedRenderImage extends RenderBox {
       gestureDetails: gestureDetails,
       editActionDetails: editActionDetails,
       layoutInsets: layoutInsets,
+      rotate90DegreesClockwise: rotate90DegreesClockwise,
     );
   }
 

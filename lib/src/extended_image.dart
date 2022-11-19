@@ -59,6 +59,7 @@ class ExtendedImage extends StatefulWidget {
     this.isAntiAlias = false,
     this.handleLoadingProgress = false,
     this.layoutInsets = EdgeInsets.zero,
+    this.rotate90DegreesClockwise = false,
   })  : assert(constraints == null || constraints.debugAssertIsValid()),
         constraints = (width != null || height != null)
             ? constraints?.tighten(width: width, height: height) ??
@@ -239,6 +240,7 @@ class ExtendedImage extends StatefulWidget {
     bool cacheRawData = false,
     String? imageCacheName,
     this.layoutInsets = EdgeInsets.zero,
+    this.rotate90DegreesClockwise = false,
   })  : assert(cacheWidth == null || cacheWidth > 0),
         assert(cacheHeight == null || cacheHeight > 0),
         image = ExtendedResizeImage.resizeIfNeeded(
@@ -336,6 +338,7 @@ class ExtendedImage extends StatefulWidget {
     bool cacheRawData = false,
     String? imageCacheName,
     this.layoutInsets = EdgeInsets.zero,
+    this.rotate90DegreesClockwise = false,
   })  :
         // FileImage is not supported on Flutter Web therefore neither this method.
         assert(
@@ -427,6 +430,7 @@ class ExtendedImage extends StatefulWidget {
     bool cacheRawData = false,
     String? imageCacheName,
     this.layoutInsets = EdgeInsets.zero,
+    this.rotate90DegreesClockwise = false,
   })  : assert(cacheWidth == null || cacheWidth > 0),
         assert(cacheHeight == null || cacheHeight > 0),
         image = ExtendedResizeImage.resizeIfNeeded(
@@ -506,6 +510,7 @@ class ExtendedImage extends StatefulWidget {
     String? imageCacheName,
     Duration? cacheMaxAge,
     this.layoutInsets = EdgeInsets.zero,
+    this.rotate90DegreesClockwise = false,
   })  : assert(cacheWidth == null || cacheWidth > 0),
         assert(cacheHeight == null || cacheHeight > 0),
         image = ExtendedResizeImage.resizeIfNeeded(
@@ -808,6 +813,8 @@ class ExtendedImage extends StatefulWidget {
   /// The image will still be painted in the full area.
   final EdgeInsets layoutInsets;
 
+  final bool rotate90DegreesClockwise;
+
   @override
   _ExtendedImageState createState() => _ExtendedImageState();
   @override
@@ -838,6 +845,8 @@ class ExtendedImage extends StatefulWidget {
     properties.add(EnumProperty<FilterQuality>('filterQuality', filterQuality));
     properties
         .add(DiagnosticsProperty<EdgeInsets>('layoutInsets', layoutInsets));
+    properties
+        .add(DiagnosticsProperty<bool>('rotate90DegreesClockwise', rotate90DegreesClockwise));
   }
 
   /// default state widget builder
@@ -1160,6 +1169,7 @@ class _ExtendedImageState extends State<ExtendedImage>
       beforePaintImage: widget.beforePaintImage,
       afterPaintImage: widget.afterPaintImage,
       layoutInsets: widget.layoutInsets,
+      rotate90DegreesClockwise: widget.rotate90DegreesClockwise,
     );
   }
 
