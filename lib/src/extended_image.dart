@@ -1308,7 +1308,7 @@ class _ExtendedImageState extends State<ExtendedImage>
   }
 
   void _updateInvertColors() {
-    _invertColors = MediaQuery.maybeOf(context)?.invertColors ??
+    _invertColors = MediaQuery.maybeInvertColorsOf(context) ??
         SemanticsBinding.instance.accessibilityFeatures.invertColors;
   }
 
