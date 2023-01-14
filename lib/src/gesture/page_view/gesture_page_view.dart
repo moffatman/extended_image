@@ -537,6 +537,9 @@ class ExtendedImageGesturePageViewState
   }
 
   bool canHorizontalOrVerticalDrag() {
+    if (!widget.canScrollPage(null)) {
+      return false;
+    }
     if (extendedImageGestureState != null) {
       return (extendedImageGestureState?.gestureDetails?.totalScale ?? 1)
           .lessThanOrEqualTo(1);

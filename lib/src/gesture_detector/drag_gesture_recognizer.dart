@@ -41,6 +41,16 @@ mixin DragGestureRecognizerMixin on _DragGestureRecognizer {
       get shouldAccpetHorizontalOrVerticalDrag;
 
   @override
+  bool isPointerAllowed(PointerEvent event) {
+    return canDrag && super.isPointerAllowed(event);
+  }
+
+  @override
+  bool isPointerPanZoomAllowed(PointerPanZoomStartEvent event) {
+    return canDrag && super.isPointerPanZoomAllowed(event);
+  }
+
+  @override
   void handleEvent(PointerEvent event) {
     assert(_state != _DragState.ready);
     if (!event.synthesized &&
