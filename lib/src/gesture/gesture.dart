@@ -395,19 +395,8 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
     //Round the scale to three points after comma to prevent shaking
     //scale = roundAfter(scale, 3);
     //no more zoom
-    if (details.scale != 1.0 &&
-        ((_gestureDetails!.totalScale!
-                    .equalTo(_gestureConfig!.animationMinScale) &&
-                scale!.lessThanOrEqualTo(_gestureDetails!.totalScale!)) ||
-            (_gestureDetails!.totalScale!
-                    .equalTo(_gestureConfig!.animationMaxScale) &&
-                scale!.greaterThanOrEqualTo(_gestureDetails!.totalScale!)))) {
-      return;
-    }
 
-    final Offset offset = (details.scale == 1.0
-            ? details.focalPoint * _gestureConfig!.speed
-            : _startingOffset) -
+    final Offset offset = (details.focalPoint * _gestureConfig!.speed) -
         _normalizedOffset * scale!;
 
     if (mounted &&
