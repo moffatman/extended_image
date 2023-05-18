@@ -86,6 +86,7 @@ class ExtendedImageSlidePageState extends State<ExtendedImageSlidePage>
   double get scale =>
       _backAnimationController.isAnimating ? backScaleAnimation!.value : _scale;
   bool _popping = false;
+  bool get popping => _popping;
 
   @override
   void initState() {
