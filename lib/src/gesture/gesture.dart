@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:extended_image/src/editor/editor_utils.dart';
 import 'package:extended_image/src/gesture/utils.dart';
 
@@ -19,6 +21,10 @@ void clearGestureDetailsCache() {
 }
 
 bool _defaultCanScaleImage(GestureDetails? details) => true;
+
+extension _Sqrt on Offset {
+  Offset pow(double exp) => Offset(math.pow(dx.abs(), exp) * dx.sign, math.pow(dy.abs(), exp) * dy.sign);
+}
 
 /// scale idea from https://github.com/flutter/flutter/blob/master/examples/layers/widgets/gestures.dart
 /// zoom image
@@ -286,10 +292,9 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
 
       // do a significant magnitude
       if (magnitude.greaterThanOrEqualTo(minMagnitude)) {
-        final Offset direction = details.velocity.pixelsPerSecond /
-            magnitude *
-            _gestureConfig!.inertialSpeed;
-
+        final Offset direction = (details.velocity.pixelsPerSecond /
+            minMagnitude).pow(0.75) * 0.2 *
+            _gestureConfig!.inertialSpeed * math.pow(_gestureDetails?.totalScale ?? 1, 2/3).toDouble();
         _gestureAnimation.animationOffset(
             _gestureDetails!.offset, _gestureDetails!.offset! + direction);
       }
