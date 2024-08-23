@@ -449,7 +449,7 @@ void paintExtendedImage(
   }
 
   if (afterPaintImage != null) {
-    afterPaintImage(canvas, destinationRect, image, paint);
+    afterPaintImage.fn(canvas, destinationRect, image, paint);
   }
 }
 

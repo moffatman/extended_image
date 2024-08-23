@@ -20,8 +20,10 @@ typedef BeforePaintImage = bool Function(
     Canvas canvas, Rect rect, ui.Image image, Paint paint);
 
 /// Call after paint image
-typedef AfterPaintImage = void Function(
-    Canvas canvas, Rect rect, ui.Image image, Paint paint);
+typedef AfterPaintImage = ({
+  Object? key,
+  void Function(Canvas canvas, Rect rect, ui.Image image, Paint paint) fn
+});
 
 /// Animation call back for inertia drag
 typedef GestureOffsetAnimationCallBack = void Function(Offset offset);

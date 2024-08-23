@@ -123,8 +123,11 @@ class ExtendedRenderImage extends RenderBox {
     if (value == _afterPaintImage) {
       return;
     }
+    final bool newKey = _afterPaintImage?.key != value?.key;
     _afterPaintImage = value;
-    markNeedsPaint();
+    if (newKey) {
+      markNeedsPaint();
+    }
   }
 
   ///input rect, you can use this to crop image.
