@@ -56,6 +56,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   ExtendedImageGesturePageViewState? _pageViewState;
   ExtendedImageSlidePageState? get extendedImageSlidePageState =>
       widget.extendedImageState.slidePageState;
+  double? _passedThroughPageViewGestureSign;
 
   GestureDetails? get gestureDetails => _gestureDetails;
 
@@ -356,7 +357,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
 
     if (extendedImageSlidePageState != null &&
         extendedImageSlidePageState!.isSliding) {
-      //return;
+      return;
     }
 
     // totalScale > 1 and page view is starting to move
@@ -369,12 +370,16 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
               details.scale == 1 &&
               _gestureDetails!.movePage(details.focalPointDelta, axis));
 
-      if (movePage) {
+      if (movePage && switch (_passedThroughPageViewGestureSign) {
+        final double sign => sign == _pageViewState!.totalDrag.sign,
+        null => true
+      }) {
         if (!pageViewState.isDraging) {
           pageViewState
               .onDragDown(DragDownDetails(globalPosition: details.focalPoint));
           pageViewState.onDragStart(
               DragStartDetails(globalPosition: details.focalPoint));
+          _passedThroughPageViewGestureSign = (axis == Axis.horizontal ? details.focalPointDelta.dx : details.focalPointDelta.dy).sign;
           //assert(!pageViewState.isDraging);
         }
         Offset delta = details.focalPointDelta;
@@ -384,10 +389,15 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         pageViewState.onDragUpdate(DragUpdateDetails(
           globalPosition: details.focalPoint,
           delta: delta,
-          primaryDelta: axis == Axis.horizontal ? delta.dx : delta.dy,
+          primaryDelta: (axis == Axis.horizontal ? delta.dx : delta.dy),
         ));
 
         return;
+      }
+      else if (_passedThroughPageViewGestureSign != null) {
+        // Kill the old gesture
+        pageViewState.onDragEnd(DragEndDetails(primaryVelocity: 0));
+        _passedThroughPageViewGestureSign = null;
       }
     }
     final double? scale = widget.canScaleImage(_gestureDetails)

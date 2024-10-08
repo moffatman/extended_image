@@ -348,6 +348,8 @@ class ExtendedImageGesturePageViewState
   }
 
   Drag? _drag;
+  double _totalDrag = 0;
+  double get totalDrag => _totalDrag;
   ScrollHoldController? _hold;
 
   void onDragDown(DragDownDetails details) {
@@ -367,6 +369,7 @@ class ExtendedImageGesturePageViewState
     // _handleDragStart, for example if some user code calls jumpTo or otherwise
     // triggers a new activity to begin.
     assert(_drag == null);
+    _totalDrag = 0;
     _drag = position.drag(details, _disposeDrag);
     assert(_drag != null);
     assert(_hold == null);
@@ -376,6 +379,7 @@ class ExtendedImageGesturePageViewState
     // _drag might be null if the drag activity ended and called _disposeDrag.
     assert(_hold == null || _drag == null);
     //final Offset delta = details.delta;
+    _totalDrag += details.primaryDelta ?? 0;
     if (!widget.canScrollPage(extendedImageGestureState?.gestureDetails)) {
       return;
     }
