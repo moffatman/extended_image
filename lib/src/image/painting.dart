@@ -209,7 +209,7 @@ void paintExtendedImage(
     }
 
     ///outside and need clip
-    needClip = rect.beyond(destinationRect);
+    needClip = destinationRect.beyond(rect);
 
     if (gestureDetails.slidePageOffset != null) {
       destinationRect = destinationRect.shift(gestureDetails.slidePageOffset!);
