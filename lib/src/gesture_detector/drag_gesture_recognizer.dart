@@ -71,7 +71,7 @@ mixin DragGestureRecognizerMixin on _DragGestureRecognizer {
       _giveUpPointer(event.pointer);
       return;
     }
-    if (event is PointerMoveEvent || event is PointerPanZoomUpdateEvent) {
+    if ((event is PointerMoveEvent || event is PointerPanZoomUpdateEvent) && _shouldTrackMoveEvent(event.pointer)) {
       final Offset delta = (event is PointerMoveEvent)
           ? event.delta
           : (event as PointerPanZoomUpdateEvent).panDelta;
@@ -85,11 +85,12 @@ mixin DragGestureRecognizerMixin on _DragGestureRecognizer {
           ? event.localPosition
           : (event.localPosition +
               (event as PointerPanZoomUpdateEvent).localPan);
+      final Offset resolvedDelta = _resolveLocalDeltaForMultitouch(event.pointer, localDelta);
       if (_state == _DragState.accepted) {
         _checkUpdate(
           sourceTimeStamp: event.timeStamp,
-          delta: _getDeltaForDetails(localDelta),
-          primaryDelta: _getPrimaryValueFromOffset(localDelta),
+          delta: _getDeltaForDetails(resolvedDelta),
+          primaryDelta: _getPrimaryValueFromOffset(resolvedDelta),
           globalPosition: position,
           localPosition: localPosition,
         );
@@ -119,6 +120,7 @@ mixin DragGestureRecognizerMixin on _DragGestureRecognizer {
           }
         }
       }
+      _recordMoveDeltaForMultitouch(event.pointer, localDelta);
     }
     if (event is PointerUpEvent ||
         event is PointerCancelEvent ||
