@@ -26,6 +26,19 @@ extension _Sqrt on Offset {
   Offset pow(double exp) => Offset(math.pow(dx.abs(), exp) * dx.sign, math.pow(dy.abs(), exp) * dy.sign);
 }
 
+extension _Direction on Offset {
+  bool get pointsUp {
+    final double d = direction / math.pi;
+    return d >= 0.25 && d <= 0.75;
+  } 
+  bool get pointsDown {
+    final double d = direction / math.pi;
+    return d <= -0.25 && d >= -0.75;
+  } 
+  bool get pointsLeft => direction.abs() <= (0.25 * math.pi);
+  bool get pointsRight => direction.abs() >= (0.75 * math.pi);
+}
+
 /// scale idea from https://github.com/flutter/flutter/blob/master/examples/layers/widgets/gestures.dart
 /// zoom image
 class ExtendedImageGesture extends StatefulWidget {
@@ -50,7 +63,9 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   late Offset _normalizedOffset;
   double? _startingScale;
   late Offset _startingOffset;
+  late Boundary _startingBoundary;
   Offset? _pointerDownPosition;
+  final Map<int, PointerDeviceKind> _pointerDownKinds = <int, PointerDeviceKind>{};
   late GestureAnimation _gestureAnimation;
   GestureConfig? _gestureConfig;
   ExtendedImageGesturePageViewState? _pageViewState;
@@ -136,6 +151,10 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
     image = Listener(
       child: image,
       onPointerDown: _handlePointerDown,
+      onPointerUp: _handlePointerUp,
+      onPointerPanZoomStart: _handlePointerPanZoomStart,
+      onPointerPanZoomEnd: _handlePointerPanZoomEnd,
+      onPointerCancel: _handlePointerCancel,
       onPointerSignal: _handlePointerSignal,
       behavior: _gestureConfig!.hitTestBehavior,
     );
@@ -217,10 +236,27 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   }
 
   void _handlePointerDown(PointerDownEvent pointerDownEvent) {
+    _pointerDownKinds[pointerDownEvent.pointer] = pointerDownEvent.kind;
     _pointerDownPosition = pointerDownEvent.position;
     _gestureAnimation.stop();
 
     _pageViewState?.extendedImageGestureState = this;
+  }
+
+  void _handlePointerUp(PointerUpEvent pointerUpEvent) {
+    _pointerDownKinds.remove(pointerUpEvent.pointer);
+  }
+
+  void _handlePointerCancel(PointerCancelEvent pointerCancelEvent) {
+    _pointerDownKinds.remove(pointerCancelEvent.pointer);
+  }
+
+  void _handlePointerPanZoomStart(PointerPanZoomStartEvent pointerPanZoomStartEvent) {
+    _pointerDownKinds[pointerPanZoomStartEvent.pointer] = pointerPanZoomStartEvent.kind;
+  }
+
+  void _handlePointerPanZoomEnd(PointerPanZoomEndEvent pointerPanZoomEndEvent) {
+    _pointerDownKinds.remove(pointerPanZoomEndEvent.pointer);
   }
 
   void _handlePointerSignal(PointerSignalEvent event) {
@@ -308,12 +344,18 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         _gestureDetails!.totalScale!;
     _startingScale = _gestureDetails!.totalScale;
     _startingOffset = details.focalPoint;
+    _startingBoundary = _gestureDetails!.boundary;
   }
 
   void handleScaleUpdate(ScaleUpdateDetails details) {
     if (extendedImageSlidePageState != null &&
         details.scale == 1.0 &&
-        (_gestureDetails!.totalScale ?? 1) <= 1 &&
+        (
+          (_gestureDetails!.totalScale ?? 1) <= 1 ||
+          (_startingBoundary.top && ((details.focalPoint - _startingOffset).pointsUp || (_gestureDetails?.slidePageOffset?.dy ?? 0) >= 0)) ||
+          (_startingBoundary.bottom && ((details.focalPoint - _startingOffset).pointsDown || (_gestureDetails?.slidePageOffset?.dy ?? 0) <= 0))
+        ) &&
+        _pageViewState?.isDraging != true &&
         _gestureDetails!.userOffset &&
         _gestureDetails!.actionType == ActionType.pan) {
       final Offset totalDelta = details.focalPointDelta;
@@ -354,6 +396,9 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         );
       }
     }
+    else if (extendedImageSlidePageState != null && extendedImageSlidePageState!.isSliding) {
+      extendedImageSlidePageState!.endSlide(ScaleEndDetails());
+    }
 
     if (extendedImageSlidePageState != null &&
         extendedImageSlidePageState!.isSliding) {
@@ -366,8 +411,12 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
 
       final Axis axis = pageViewState.widget.scrollDirection;
       final bool movePage = _pageViewState!.isDraging ||
-          (details.pointerCount == 1 &&
+          ((_pointerDownKinds.length == 1) &&
               details.scale == 1 &&
+              (
+                (_startingBoundary.left && (details.focalPoint - _startingOffset).pointsLeft) ||
+                (_startingBoundary.right && (details.focalPoint - _startingOffset).pointsRight)
+              ) &&
               _gestureDetails!.movePage(details.focalPointDelta, axis));
 
       if (movePage && switch (_passedThroughPageViewGestureSign) {
@@ -398,6 +447,9 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         // Kill the old gesture
         pageViewState.onDragEnd(DragEndDetails(primaryVelocity: 0));
         _passedThroughPageViewGestureSign = null;
+        // Reset the _normalizedOffset to avoid a jump in case dy has changed while in passed-through state
+        _normalizedOffset = (details.focalPoint - _gestureDetails!.offset!) / _gestureDetails!.totalScale!;
+        _startingOffset = details.focalPoint;
       }
     }
     final double? scale = widget.canScaleImage(_gestureDetails)

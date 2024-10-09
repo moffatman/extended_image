@@ -208,12 +208,15 @@ void paintExtendedImage(
       );
     }
 
-    ///outside and need clip
-    needClip = destinationRect.beyond(rect);
 
     if (gestureDetails.slidePageOffset != null) {
+      // don't clip
       destinationRect = destinationRect.shift(gestureDetails.slidePageOffset!);
       rect = rect.shift(gestureDetails.slidePageOffset!);
+    }
+    else {
+      ///outside and need clip
+      needClip = destinationRect.beyond(rect);
     }
 
     if (needClip) {
