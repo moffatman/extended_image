@@ -262,35 +262,36 @@ class GestureDetails {
     final Offset center = _getCenter(destinationRect)!;
     Rect result = _getDestinationRect(destinationRect, center);
 
+    _boundary.left = result.left.greaterThanOrEqualTo(layoutRect.left);
+    _boundary.right = result.right.lessThanOrEqualTo(layoutRect.right);
+    _boundary.bottom = result.bottom.lessThanOrEqualTo(layoutRect.bottom);
+    _boundary.top = result.top.greaterThanOrEqualTo(layoutRect.top);
+
     if (_computeHorizontalBoundary) {
       //move right
-      if (result.left.greaterThanOrEqualTo(layoutRect.left)) {
+      if (_boundary.left) {
         result = Rect.fromLTWH(
             layoutRect.left, result.top, result.width, result.height);
-        _boundary.left = true;
       }
 
       ///move left
-      if (result.right.lessThanOrEqualTo(layoutRect.right)) {
+      if (_boundary.right) {
         result = Rect.fromLTWH(layoutRect.right - result.width, result.top,
             result.width, result.height);
-        _boundary.right = true;
       }
     }
 
     if (_computeVerticalBoundary) {
       //move down
-      if (result.bottom.lessThanOrEqualTo(layoutRect.bottom)) {
+      if (_boundary.bottom) {
         result = Rect.fromLTWH(result.left, layoutRect.bottom - result.height,
             result.width, result.height);
-        _boundary.bottom = true;
       }
 
       //move up
-      if (result.top.greaterThanOrEqualTo(layoutRect.top)) {
+      if (_boundary.top) {
         result = Rect.fromLTWH(
             result.left, layoutRect.top, result.width, result.height);
-        _boundary.top = true;
       }
     }
 
