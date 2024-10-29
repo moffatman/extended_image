@@ -352,8 +352,8 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         details.scale == 1.0 &&
         (
           (_gestureDetails!.totalScale ?? 1) <= 1 ||
-          (_startingBoundary.top && ((details.focalPoint - _startingOffset).pointsUp || (_gestureDetails?.slidePageOffset?.dy ?? 0) >= 0)) ||
-          (_startingBoundary.bottom && ((details.focalPoint - _startingOffset).pointsDown || (_gestureDetails?.slidePageOffset?.dy ?? 0) <= 0))
+          (_startingBoundary.top && ((details.focalPoint - _startingOffset).pointsUp || (_gestureDetails?.slidePageOffset?.dy ?? 0) > 0)) ||
+          (_startingBoundary.bottom && ((details.focalPoint - _startingOffset).pointsDown || (_gestureDetails?.slidePageOffset?.dy ?? 0) < 0))
         ) &&
         _pageViewState?.isDraging != true &&
         _gestureDetails!.userOffset &&
