@@ -416,7 +416,7 @@ class GestureConfig {
   final double animationMaxScale;
 
   /// Max scale
-  final double maxScale;
+  double maxScale;
 
   /// Speed for zoom/pan
   final double speed;
