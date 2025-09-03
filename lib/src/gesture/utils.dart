@@ -342,6 +342,18 @@ class GestureDetails {
       rawDestinationRect: rawDestinationRect,
     ).._boundary = _boundary;
   }
+
+  @override
+  String toString() => 'GestureDetails(${<String, Object?>{
+    'offset': offset,
+    'totalScale': totalScale,
+    'actionType': actionType,
+    'userOffset': userOffset,
+    'initialAlignment': initialAlignment,
+    'slidePageOffset': slidePageOffset,
+    'rawDestinationRect': rawDestinationRect,
+    '_boundary': _boundary
+  }.entries.where((MapEntry<String, Object?> e) => e.value != null).map((MapEntry<String, Object?> e) => '${e.key}: ${e.value}').join(', ')})';
 }
 
 /// init image rect with alignment when initialScale > 1.0
