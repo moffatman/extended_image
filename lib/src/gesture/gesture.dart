@@ -53,10 +53,30 @@ class ExtendedImageGesture extends StatefulWidget {
   final ImageBuilderForGesture? imageBuilder;
   final CanScaleImage canScaleImage;
   @override
-  ExtendedImageGestureState createState() => ExtendedImageGestureState();
+  ExtendedImageGestureStateImage createState() => ExtendedImageGestureStateImage();
 }
 
-class ExtendedImageGestureState extends State<ExtendedImageGesture>
+class ExtendedImageGestureWidget extends StatefulWidget {
+  const ExtendedImageGestureWidget({
+    required this.child,
+    required this.width,
+    required this.height,
+    this.heroBuilderForSlidingPage,
+    this.initGestureConfigHandler,
+    super.key
+  });
+  final Widget child;
+  final HeroBuilderForSlidingPage? heroBuilderForSlidingPage;
+  final GestureConfig Function()? initGestureConfigHandler;
+  final int width;
+  final int height;
+  @override
+  ExtendedImageGestureStateWidget createState() => ExtendedImageGestureStateWidget();
+}
+
+
+typedef ExtendedImageGestureState = ExtendedImageGestureStateBase<StatefulWidget>;
+abstract class ExtendedImageGestureStateBase<T extends StatefulWidget> extends State<T>
     with TickerProviderStateMixin {
   ///details for gesture
   GestureDetails? _gestureDetails;
@@ -69,8 +89,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   late GestureAnimation _gestureAnimation;
   GestureConfig? _gestureConfig;
   ExtendedImageGesturePageViewState? _pageViewState;
-  ExtendedImageSlidePageState? get extendedImageSlidePageState =>
-      widget.extendedImageState.slidePageState;
+  ExtendedImageSlidePageState? get extendedImageSlidePageState;
   double? _passedThroughPageViewGestureSign;
 
   GestureDetails? get gestureDetails => _gestureDetails;
@@ -84,6 +103,16 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
     }
   }
 
+  Object? get _currentImageKey;
+  GestureConfig? _makeGestureConfig();
+  VoidCallback? _makeOnDoubleTap();
+  int get width;
+  int get height;
+  BoxFit? get fit;
+  HeroBuilderForSlidingPage? get _heroBuilderForSlidingPage;
+  bool _canScaleImage(GestureDetails? details);
+  Widget _buildImpl();
+
   GestureConfig? get imageGestureConfig => _gestureConfig;
 
   Offset? get pointerDownPosition => _pointerDownPosition;
@@ -91,59 +120,17 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   @override
   Widget build(BuildContext context) {
     if (_gestureConfig!.cacheGesture) {
-      _gestureDetailsCache[widget.extendedImageState.imageStreamKey] =
+      _gestureDetailsCache[_currentImageKey] =
           _gestureDetails;
     }
 
-    Widget image = ExtendedRawImage(
-      image: widget.extendedImageState.extendedImageInfo?.image,
-      width: widget.extendedImageState.imageWidget.width,
-      height: widget.extendedImageState.imageWidget.height,
-      scale: widget.extendedImageState.extendedImageInfo?.scale ?? 1.0,
-      color: widget.extendedImageState.imageWidget.color,
-      colorBlendMode: widget.extendedImageState.imageWidget.colorBlendMode,
-      fit: widget.extendedImageState.imageWidget.fit,
-      alignment: widget.extendedImageState.imageWidget.alignment,
-      repeat: widget.extendedImageState.imageWidget.repeat,
-      centerSlice: widget.extendedImageState.imageWidget.centerSlice,
-      matchTextDirection:
-          widget.extendedImageState.imageWidget.matchTextDirection,
-      invertColors: widget.extendedImageState.invertColors,
-      filterQuality: widget.extendedImageState.imageWidget.filterQuality,
-      beforePaintImage: widget.extendedImageState.imageWidget.beforePaintImage,
-      afterPaintImage: widget.extendedImageState.imageWidget.afterPaintImage,
-      gestureDetails: _gestureDetails,
-      layoutInsets: widget.extendedImageState.imageWidget.layoutInsets,
-      rotate90DegreesClockwise: widget.extendedImageState.imageWidget.rotate90DegreesClockwise,
-    );
-
-    if (extendedImageSlidePageState != null) {
-      image = widget.extendedImageState.imageWidget.heroBuilderForSlidingPage
-              ?.call(image) ??
-          image;
-      if (extendedImageSlidePageState!.widget.slideType ==
-          SlideType.onlyImage) {
-        image = Transform.translate(
-          offset: extendedImageSlidePageState!.offset,
-          child: Transform.scale(
-            scale: extendedImageSlidePageState!.scale,
-            child: image,
-          ),
-        );
-      }
-    }
-
-    image = widget.imageBuilder?.call(
-          image,
-          imageGestureState: this,
-        ) ??
-        image;
+    Widget image = _buildImpl();
 
     image = GestureDetector(
       onScaleStart: handleScaleStart,
       onScaleUpdate: handleScaleUpdate,
       onScaleEnd: handleScaleEnd,
-      onDoubleTap: (widget.extendedImageState.imageWidget.onDoubleTap != null) ? () => widget.extendedImageState.imageWidget.onDoubleTap!(this) : null,
+      onDoubleTap: _makeOnDoubleTap(),
       child: image,
       behavior: _gestureConfig?.hitTestBehavior,
     );
@@ -174,7 +161,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   }
 
   @override
-  void didUpdateWidget(ExtendedImageGesture oldWidget) {
+  void didUpdateWidget(T oldWidget) {
     super.didUpdateWidget(oldWidget);
     _initGestureConfig();
     _pageViewState = null;
@@ -215,10 +202,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   }
 
   void reset() {
-    _gestureConfig = widget
-            .extendedImageState.imageWidget.initGestureConfigHandler
-            ?.call(widget.extendedImageState) ??
-        GestureConfig();
+    _gestureConfig = _makeGestureConfig() ?? GestureConfig();
 
     gestureDetails = GestureDetails(
       totalScale: _gestureConfig!.initialScale,
@@ -452,7 +436,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
         _startingOffset = details.focalPoint;
       }
     }
-    final double? scale = widget.canScaleImage(_gestureDetails)
+    final double? scale = _canScaleImage(_gestureDetails)
         ? clampScale(
             _startingScale! * details.scale * _gestureConfig!.speed,
             _gestureConfig!.animationMinScale,
@@ -480,10 +464,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
   void _initGestureConfig() {
     final double? initialScale = _gestureConfig?.initialScale;
     final InitialAlignment? initialAlignment = _gestureConfig?.initialAlignment;
-    _gestureConfig = widget
-            .extendedImageState.imageWidget.initGestureConfigHandler
-            ?.call(widget.extendedImageState) ??
-        GestureConfig();
+    _gestureConfig = _makeGestureConfig() ?? GestureConfig();
 
     if (_gestureDetails == null ||
         initialScale != _gestureConfig!.initialScale ||
@@ -497,7 +478,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
 
     if (_gestureConfig!.cacheGesture) {
       final GestureDetails? cache =
-          _gestureDetailsCache[widget.extendedImageState.imageStreamKey];
+          _gestureDetailsCache[_currentImageKey];
       if (cache != null) {
         _gestureDetails = cache;
       }
@@ -551,8 +532,7 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
     );
 
     if (extendedImageSlidePageState != null) {
-      child = widget.extendedImageState.imageWidget.heroBuilderForSlidingPage
-              ?.call(child) ??
+      child = _heroBuilderForSlidingPage?.call(child) ??
           child;
       if (extendedImageSlidePageState!.widget.slideType ==
           SlideType.onlyImage) {
@@ -567,6 +547,113 @@ class ExtendedImageGestureState extends State<ExtendedImageGesture>
     }
 
     return child;
+  }
+}
+
+class ExtendedImageGestureStateImage extends ExtendedImageGestureStateBase<ExtendedImageGesture> {
+  @override
+  ExtendedImageSlidePageState? get extendedImageSlidePageState =>
+      widget.extendedImageState.slidePageState;
+  @override
+  Object? get _currentImageKey => widget.extendedImageState.imageStreamKey;
+
+  @override
+  VoidCallback? _makeOnDoubleTap() =>
+      (widget.extendedImageState.imageWidget.onDoubleTap != null) ? () => widget.extendedImageState.imageWidget.onDoubleTap!(this) : null;
+
+  @override
+  GestureConfig? _makeGestureConfig() =>
+    widget.extendedImageState.imageWidget.initGestureConfigHandler?.call(widget.extendedImageState);
+
+  @override
+  int get width => widget.extendedImageState.extendedImageInfo!.image.width;
+  @override
+  int get height => widget.extendedImageState.extendedImageInfo!.image.height;
+  @override
+  BoxFit? get fit => widget.extendedImageState.imageWidget.fit;
+
+  @override
+  HeroBuilderForSlidingPage? get _heroBuilderForSlidingPage =>
+      widget.extendedImageState.imageWidget.heroBuilderForSlidingPage;
+
+  @override
+  bool _canScaleImage(GestureDetails? details) => widget.canScaleImage(details);
+  
+  @override
+  Widget _buildImpl() {
+    Widget image = ExtendedRawImage(
+      image: widget.extendedImageState.extendedImageInfo?.image,
+      width: widget.extendedImageState.imageWidget.width,
+      height: widget.extendedImageState.imageWidget.height,
+      scale: widget.extendedImageState.extendedImageInfo?.scale ?? 1.0,
+      color: widget.extendedImageState.imageWidget.color,
+      colorBlendMode: widget.extendedImageState.imageWidget.colorBlendMode,
+      fit: widget.extendedImageState.imageWidget.fit,
+      alignment: widget.extendedImageState.imageWidget.alignment,
+      repeat: widget.extendedImageState.imageWidget.repeat,
+      centerSlice: widget.extendedImageState.imageWidget.centerSlice,
+      matchTextDirection:
+          widget.extendedImageState.imageWidget.matchTextDirection,
+      invertColors: widget.extendedImageState.invertColors,
+      filterQuality: widget.extendedImageState.imageWidget.filterQuality,
+      beforePaintImage: widget.extendedImageState.imageWidget.beforePaintImage,
+      afterPaintImage: widget.extendedImageState.imageWidget.afterPaintImage,
+      gestureDetails: _gestureDetails,
+      layoutInsets: widget.extendedImageState.imageWidget.layoutInsets,
+      rotate90DegreesClockwise: widget.extendedImageState.imageWidget.rotate90DegreesClockwise,
+    );
+    image = _heroBuilderForSlidingPage?.call(image) ?? image;
+    if (extendedImageSlidePageState != null) {
+      if (extendedImageSlidePageState!.widget.slideType ==
+          SlideType.onlyImage) {
+        image = Transform.translate(
+          offset: extendedImageSlidePageState!.offset,
+          child: Transform.scale(
+            scale: extendedImageSlidePageState!.scale,
+            child: image,
+          ),
+        );
+      }
+    }
+    return widget.imageBuilder?.call(image, imageGestureState: this) ?? image;
+  }
+}
+
+class ExtendedImageGestureStateWidget extends ExtendedImageGestureStateBase<ExtendedImageGestureWidget> {
+  @override
+  ExtendedImageSlidePageState? extendedImageSlidePageState;
+  @override
+  Object? get _currentImageKey => null;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    extendedImageSlidePageState = context.findAncestorStateOfType<ExtendedImageSlidePageState>();
+  }
+
+  @override
+  VoidCallback? _makeOnDoubleTap() => null;
+
+  @override
+  GestureConfig? _makeGestureConfig() => widget.initGestureConfigHandler?.call();
+
+  @override
+  int get width => widget.width;
+  @override
+  int get height => widget.height;
+  @override
+  BoxFit? get fit => null;
+
+  @override
+  HeroBuilderForSlidingPage? get _heroBuilderForSlidingPage =>
+      widget.heroBuilderForSlidingPage;
+
+  @override
+  bool _canScaleImage(GestureDetails? details) => true;
+
+  @override
+  Widget _buildImpl() {
+    return wrapGestureWidget(widget.child, imageWidth: widget.width.toDouble(), imageHeight: widget.height.toDouble());
   }
 }
 
@@ -640,21 +727,13 @@ class GestureWidgetDelegateFromState extends SingleChildLayoutDelegate {
   }) {
     final GestureDetails? gestureDetails = state.gestureDetails;
 
-    if (gestureDetails != null && gestureDetails.slidePageOffset != null) {
-      rect = rect.shift(-gestureDetails.slidePageOffset!);
-    }
-
     Rect destinationRect = getDestinationRect(
       rect: rect,
       inputSize: Size(
-        width ??
-            state.widget.extendedImageState.extendedImageInfo!.image.width
-                .toDouble(),
-        height ??
-            state.widget.extendedImageState.extendedImageInfo!.image.height
-                .toDouble(),
+        width ?? state.width.toDouble(),
+        height ?? state.height.toDouble(),
       ),
-      fit: fit ?? state.widget.extendedImageState.imageWidget.fit,
+      fit: fit ?? state.fit,
     );
 
     if (gestureDetails != null) {
@@ -663,10 +742,6 @@ class GestureWidgetDelegateFromState extends SingleChildLayoutDelegate {
         gd = gestureDetails.copy();
       }
       destinationRect = gd.calculateFinalDestinationRect(rect, destinationRect);
-
-      if (gd.slidePageOffset != null) {
-        destinationRect = destinationRect.shift(gd.slidePageOffset!);
-      }
     }
     return destinationRect;
   }
