@@ -63,6 +63,7 @@ class ExtendedImageGestureWidget extends StatefulWidget {
     required this.height,
     this.heroBuilderForSlidingPage,
     this.initGestureConfigHandler,
+    this.fit,
     super.key
   });
   final Widget child;
@@ -70,6 +71,7 @@ class ExtendedImageGestureWidget extends StatefulWidget {
   final GestureConfig Function()? initGestureConfigHandler;
   final int width;
   final int height;
+  final BoxFit? fit;
   @override
   ExtendedImageGestureStateWidget createState() => ExtendedImageGestureStateWidget();
 }
@@ -642,7 +644,7 @@ class ExtendedImageGestureStateWidget extends ExtendedImageGestureStateBase<Exte
   @override
   int get height => widget.height;
   @override
-  BoxFit? get fit => null;
+  BoxFit? get fit => widget.fit;
 
   @override
   HeroBuilderForSlidingPage? get _heroBuilderForSlidingPage =>
