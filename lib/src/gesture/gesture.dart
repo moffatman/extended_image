@@ -604,8 +604,8 @@ class ExtendedImageGestureStateImage extends ExtendedImageGestureStateBase<Exten
       layoutInsets: widget.extendedImageState.imageWidget.layoutInsets,
       rotate90DegreesClockwise: widget.extendedImageState.imageWidget.rotate90DegreesClockwise,
     );
-    image = _heroBuilderForSlidingPage?.call(image) ?? image;
     if (extendedImageSlidePageState != null) {
+      image = _heroBuilderForSlidingPage?.call(image) ?? image;
       if (extendedImageSlidePageState!.widget.slideType ==
           SlideType.onlyImage) {
         image = Transform.translate(
