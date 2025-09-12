@@ -64,14 +64,16 @@ class ExtendedImageGestureWidget extends StatefulWidget {
     this.heroBuilderForSlidingPage,
     this.initGestureConfigHandler,
     this.fit,
+    CanScaleImage? canScaleImage,
     super.key
-  });
+  }) : canScaleImage = canScaleImage ?? _defaultCanScaleImage;
   final Widget child;
   final HeroBuilderForSlidingPage? heroBuilderForSlidingPage;
   final GestureConfig Function()? initGestureConfigHandler;
   final int width;
   final int height;
   final BoxFit? fit;
+  final CanScaleImage canScaleImage;
   @override
   ExtendedImageGestureStateWidget createState() => ExtendedImageGestureStateWidget();
 }
@@ -651,7 +653,7 @@ class ExtendedImageGestureStateWidget extends ExtendedImageGestureStateBase<Exte
       widget.heroBuilderForSlidingPage;
 
   @override
-  bool _canScaleImage(GestureDetails? details) => true;
+  bool _canScaleImage(GestureDetails? details) => widget.canScaleImage(details);
 
   @override
   Widget _buildImpl() {

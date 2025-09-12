@@ -56,6 +56,7 @@ class ExtendedImage extends StatefulWidget {
     this.heroBuilderForSlidingPage,
     this.clearMemoryCacheWhenDispose = false,
     this.extendedImageGestureKey,
+    this.canScaleImage,
     this.isAntiAlias = false,
     this.handleLoadingProgress = false,
     this.layoutInsets = EdgeInsets.zero,
@@ -232,6 +233,7 @@ class ExtendedImage extends StatefulWidget {
     this.heroBuilderForSlidingPage,
     this.clearMemoryCacheWhenDispose = false,
     this.extendedImageGestureKey,
+    this.canScaleImage,
     int? cacheWidth,
     int? cacheHeight,
     this.isAntiAlias = false,
@@ -330,6 +332,7 @@ class ExtendedImage extends StatefulWidget {
     this.heroBuilderForSlidingPage,
     this.clearMemoryCacheWhenDispose = false,
     this.extendedImageGestureKey,
+    this.canScaleImage,
     int? cacheWidth,
     int? cacheHeight,
     this.isAntiAlias = false,
@@ -422,6 +425,7 @@ class ExtendedImage extends StatefulWidget {
     this.heroBuilderForSlidingPage,
     this.clearMemoryCacheWhenDispose = false,
     this.extendedImageGestureKey,
+    this.canScaleImage,
     int? cacheWidth,
     int? cacheHeight,
     this.isAntiAlias = false,
@@ -499,6 +503,7 @@ class ExtendedImage extends StatefulWidget {
     this.clearMemoryCacheWhenDispose = false,
     this.handleLoadingProgress = false,
     this.extendedImageGestureKey,
+    this.canScaleImage,
     int? cacheWidth,
     int? cacheHeight,
     this.isAntiAlias = false,
@@ -547,6 +552,8 @@ class ExtendedImage extends StatefulWidget {
 
   /// key of ExtendedImageGesture
   final Key? extendedImageGestureKey;
+
+  final CanScaleImage? canScaleImage;
 
   /// whether handle loading progress for network
   final bool handleLoadingProgress;
@@ -1178,6 +1185,7 @@ class _ExtendedImageState extends State<ExtendedImage>
     if (widget.mode == ExtendedImageMode.gesture) {
       current = ExtendedImageGesture(
         this,
+        canScaleImage: widget.canScaleImage,
         key: widget.extendedImageGestureKey,
       );
     } else if (widget.mode == ExtendedImageMode.editor) {
