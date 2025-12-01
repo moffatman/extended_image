@@ -679,7 +679,7 @@ class RenderGestureWidgetLayout extends RenderProxyBox {
   @protected
   Size computeDryLayout(BoxConstraints constraints) {
     if (child != null) {
-      final Size childSize = child!.getDryLayout(constraints);
+      final Size childSize = child!.getDryLayout(const BoxConstraints());
 
       switch (_fit) {
         case BoxFit.scaleDown:
@@ -702,7 +702,7 @@ class RenderGestureWidgetLayout extends RenderProxyBox {
   @override
   void performLayout() {
     if (child != null) {
-      child!.layout(constraints.deflate(_layoutInsets), parentUsesSize: true);
+      child!.layout(const BoxConstraints(), parentUsesSize: true);
       final Rect rect = _layoutInsets.deflateRect(Offset.zero & constraints.biggest);
       Rect destinationRect = getDestinationRect(
         rect: rect,
