@@ -711,8 +711,6 @@ class RenderGestureWidgetLayout extends RenderProxyBox {
       );
 
       destinationRect = _gestureDetails?.calculateFinalDestinationRect(rect, destinationRect) ?? destinationRect;
-
-      print('$rect -> $destinationRect');
       
       switch (_fit) {
         case BoxFit.scaleDown:
