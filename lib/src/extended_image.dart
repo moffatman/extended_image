@@ -61,6 +61,7 @@ class ExtendedImage extends StatefulWidget {
     this.handleLoadingProgress = false,
     this.layoutInsets = EdgeInsets.zero,
     this.rotate90DegreesClockwise = false,
+    this.suppressRebuild = false,
   })  : assert(constraints == null || constraints.debugAssertIsValid()),
         constraints = (width != null || height != null)
             ? constraints?.tighten(width: width, height: height) ??
@@ -243,6 +244,7 @@ class ExtendedImage extends StatefulWidget {
     String? imageCacheName,
     this.layoutInsets = EdgeInsets.zero,
     this.rotate90DegreesClockwise = false,
+    this.suppressRebuild = false,
   })  : assert(cacheWidth == null || cacheWidth > 0),
         assert(cacheHeight == null || cacheHeight > 0),
         image = ExtendedResizeImage.resizeIfNeeded(
@@ -342,6 +344,7 @@ class ExtendedImage extends StatefulWidget {
     String? imageCacheName,
     this.layoutInsets = EdgeInsets.zero,
     this.rotate90DegreesClockwise = false,
+    this.suppressRebuild = false,
   })  :
         // FileImage is not supported on Flutter Web therefore neither this method.
         assert(
@@ -435,6 +438,7 @@ class ExtendedImage extends StatefulWidget {
     String? imageCacheName,
     this.layoutInsets = EdgeInsets.zero,
     this.rotate90DegreesClockwise = false,
+    this.suppressRebuild = false,
   })  : assert(cacheWidth == null || cacheWidth > 0),
         assert(cacheHeight == null || cacheHeight > 0),
         image = ExtendedResizeImage.resizeIfNeeded(
@@ -516,6 +520,7 @@ class ExtendedImage extends StatefulWidget {
     Duration? cacheMaxAge,
     this.layoutInsets = EdgeInsets.zero,
     this.rotate90DegreesClockwise = false,
+    this.suppressRebuild = false,
   })  : assert(cacheWidth == null || cacheWidth > 0),
         assert(cacheHeight == null || cacheHeight > 0),
         image = ExtendedResizeImage.resizeIfNeeded(
@@ -822,6 +827,10 @@ class ExtendedImage extends StatefulWidget {
 
   final bool rotate90DegreesClockwise;
 
+  /// Don't rebuild if image stream didn't change
+  /// This breaks retrying errored images
+  final bool suppressRebuild;
+
   @override
   _ExtendedImageState createState() => _ExtendedImageState();
   @override
@@ -911,6 +920,7 @@ class _ExtendedImageState extends State<ExtendedImage>
   Object? _lastException;
   StackTrace? _lastStack;
   ImageStreamCompleterHandle? _completerHandle;
+  Object? _lastKey;
 
   ImageStreamListener? _imageStreamListener;
 
@@ -1280,19 +1290,23 @@ class _ExtendedImageState extends State<ExtendedImage>
       imageProvider: widget.image,
     );
 
-    final ImageStream newStream = provider.resolve(
+    final ImageConfiguration configuration =
         createLocalImageConfiguration(context,
             size: widget.width != null && widget.height != null
                 ? Size(widget.width!, widget.height!)
-                : null));
-
-    if (_imageInfo != null && !rebuild && _imageStream?.key == newStream.key) {
-      setState(() {
-        _loadState = LoadState.completed;
-      });
-    }
-
-    _updateSourceStream(newStream, rebuild: rebuild);
+                : null);
+    provider.obtainKey(configuration).then((Object key) {
+      if (!widget.suppressRebuild || key != _lastKey) {
+        _lastKey = key;
+        final ImageStream newStream = provider.resolve(configuration);
+        if (_imageInfo != null && !rebuild && _imageStream?.key == newStream.key) {
+          setState(() {
+            _loadState = LoadState.completed;
+          });
+        }
+        _updateSourceStream(newStream, rebuild: rebuild);
+      }
+    });
   }
 
   /// Stops listening to the image stream, if this state object has attached a
